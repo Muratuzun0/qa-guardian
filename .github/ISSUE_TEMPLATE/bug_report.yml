@@ -1,0 +1,25 @@
+name: Bug report
+description: Report an unexpected result from QA Guardian.
+title: "[Bug] "
+body:
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to reproduce
+      description: Include the command, a minimal configuration, and a local fixture if possible. Remove credentials, private URLs, and sensitive report data.
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: Expected and actual results
+      description: Include the exit code and any relevant terminal or JSON output.
+    validations:
+      required: true
+  - type: input
+    id: environment
+    attributes:
+      label: Environment
+      description: Include the operating system, Node.js version, and output from qa-guardian --version.
+    validations:
+      required: true

@@ -1,0 +1,42 @@
+{
+  "name": "qa-guardian",
+  "version": "0.1.0",
+  "description": "Run bounded availability, link, accessibility and API checks against your web app",
+  "type": "module",
+  "license": "MIT",
+  "repository": "github:Muratuzun0/qa-guardian",
+  "engines": {
+    "node": "^22.0.0 || ^24.0.0"
+  },
+  "bin": {
+    "qa-guardian": "dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "npm run build && node --test tests/*.test.mjs"
+  },
+  "keywords": [
+    "qa",
+    "accessibility",
+    "playwright",
+    "broken-links",
+    "smoke-test"
+  ],
+  "dependencies": {
+    "@axe-core/playwright": "4.14.0",
+    "ipaddr.js": "2.5.0",
+    "playwright": "1.65.1",
+    "zod": "4.6.7"
+  },
+  "devDependencies": {
+    "@types/node": "22.20.5",
+    "eslint": "10.15.0",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.73.0"
+  }
+}

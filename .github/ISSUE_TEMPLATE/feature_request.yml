@@ -1,0 +1,22 @@
+name: Feature request
+description: Suggest an improvement to QA Guardian
+title: "[Feature]: "
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: What are you trying to accomplish?
+      description: Describe the workflow and where the current CLI gets in the way.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Suggested behavior
+      description: Include an example command, configuration, or report if useful. Remove credentials and private URLs.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you considered

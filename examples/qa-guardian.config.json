@@ -1,0 +1,41 @@
+{
+  "baseUrl": "http://127.0.0.1:3000",
+  "routes": [
+    "/",
+    "/about"
+  ],
+  "checks": {
+    "pages": true,
+    "links": true,
+    "accessibility": true,
+    "api": true
+  },
+  "timeoutMs": 10000,
+  "links": {
+    "externalOrigins": [],
+    "concurrency": 4,
+    "maxLinksPerPage": 100,
+    "checkFragments": true
+  },
+  "browser": {
+    "headless": true
+  },
+  "api": [
+    {
+      "path": "/api/health",
+      "method": "GET",
+      "expectedStatus": 200,
+      "assertions": [
+        {
+          "path": [
+            "status"
+          ],
+          "equals": "ok"
+        }
+      ]
+    }
+  ],
+  "allowUnsafeMethods": false,
+  "reportDir": "qa-guardian-reports",
+  "failOn": "error"
+}

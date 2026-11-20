@@ -1,0 +1,14 @@
+node_modules/
+dist/
+*.tgz
+qa-guardian-reports/
+coverage/
+
+# Local QA output and environment files
+qa-guardian-report.json
+.qa-guardian-baseline.json
+.qa-guardian-baseline-*/
+.qa-guardian-*/
+.env
+.env.*
+*.tmp
