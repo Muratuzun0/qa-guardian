@@ -12,3 +12,9 @@ qa-guardian-report.json
 .env
 .env.*
 *.tmp
+
+# Internal reports belong in the private repository.
+/GROWTH_REPORT.md
+/growth-reports/
+/internal/GROWTH_REPORT.md
+/internal/growth-reports/
