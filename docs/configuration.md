@@ -67,4 +67,4 @@ The JSON report includes `schemaVersion`, `results`, `summary`, and `exitCode`. 
 
 ## API security expectations
 
-Opt in with `security.authorized: true` and an exact `security.origin`. Each scenario describes one authorized GET with its expected status and optional response policies. See the [security reference](security-checks.md) for examples, defaults, and interpretation.
+Opt in with `security.authorized: true` and an exact `security.origin`. Each scenario describes one authorized GET with its expected status and optional response policies. Use `qa-guardian security --config FILE` to run those scenarios alone. See the [security reference](security-checks.md) for examples, defaults, and interpretation.

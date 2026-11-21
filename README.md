@@ -52,7 +52,7 @@ npx qa-guardian check
 | Accessibility | axe rules, affected selectors, and remediation guidance. |
 | API smoke tests | Expected statuses and JSON value assertions for configured endpoints. |
 | Regression Guard | New, resolved, unchanged, and unverified findings against a local baseline. |
-| API security expectations | Opt-in status, header, disclosure, and JWT metadata checks. Available from source on this branch. |
+| API security expectations | Opt-in status, header, disclosure, and JWT policy checks. Available from source on this branch. |
 
 Use Playwright directly when you need to sign in, script a specific user journey, or inspect a page after an interaction. QA Guardian combines bounded checks of a running preview into one terminal or JSON report.
 
@@ -85,7 +85,15 @@ The CLI’s comparison exits 1 because the new link fails the threshold. The dem
 
 ## API security checks
 
-Add explicit authorization and exact-origin scenarios to check what authorized and anonymous test identities receive. Checks can review CORS response headers, cache policy, selected security headers, diagnostic disclosures, forbidden JSON fields, token metadata, and 429 backoff guidance. The currently published v0.1.0 package predates these checks.
+Use `qa-guardian security --config qa-guardian.config.json` to check explicitly authorized API scenarios without starting browser checks. The currently published v0.1.0 package predates this command.
+
+| Area | What the security run checks |
+| --- | --- |
+| Access control | Declared status for a fixed resource and an explicitly supplied test identity. |
+| Token policy | JWT issuer, audience, time claims, and optional signature verification with a pinned RSA public key. |
+| CORS, headers, cookies | Observed origin, method and header policy, sensitive caching, and configured cookie attributes. |
+| Disclosure | Configured JSON fields and optional markers for server diagnostics and private keys. |
+| Rate limiting | Observed backoff and quota headers. Requests stop at the first 429. |
 
 The [local fixture](docs/security-checks.md#run-the-local-fixture) produced these lines from the terminal report:
 

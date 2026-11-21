@@ -12,4 +12,4 @@ Use custom Playwright tests for sign-in flows and specific user journeys. QA Gua
 
 See the [contributor guide](../CONTRIBUTING.md) to start a small change.
 
-API security response checks are available from source on the development branch. Evaluate the local fixture and collect feedback on warning severity and CI ergonomics before releasing the feature.
+The API security checks are available from source. The next milestone is to validate the scenario configuration and CI workflow with a staging API before releasing the feature.

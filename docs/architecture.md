@@ -60,3 +60,5 @@ Consider clearer diagnostics for client-side rendering readiness and finer basel
 ## Defensive API response checks
 
 `src/security-config.ts` validates explicit scenario scope and the request budget. `src/security.ts` sends only fixed GET requests and evaluates HTTP status, headers, configured fields, and optional JWT metadata. It reuses the shared transport but requires public DNS answers outside literal loopback and disables redirects. Security results contain fixed evidence messages and remediation for baseline comparison.
+
+The `security` command selects only security scenarios. `src/security-jwt.ts` checks token policy and can verify RSA signatures with a trusted public key supplied outside configuration. No DNS or HTTP requests originate from token metadata.
