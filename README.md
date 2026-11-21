@@ -12,7 +12,7 @@ A small application can benefit from a deploy check before it has a full automat
 
 ## Install and run
 
-Run the build and pack commands in a checkout of this project.
+The npm package is named `@muratuzun0/qa-guardian` and installs the `qa-guardian` command. Run the build and pack commands in a checkout of this project.
 
 ```sh
 npm ci
@@ -23,7 +23,7 @@ npm pack
 Install the generated archive from your application directory. Replace the archive path with the one printed by `npm pack`.
 
 ```sh
-npm install --save-dev /path/to/qa-guardian-0.1.0.tgz
+npm install --save-dev /path/to/muratuzun0-qa-guardian-0.1.0.tgz
 npx playwright install chromium
 ```
 

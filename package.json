@@ -1,5 +1,5 @@
 {
-  "name": "qa-guardian",
+  "name": "@muratuzun0/qa-guardian",
   "version": "0.1.0",
   "description": "Run bounded availability, link, accessibility and API checks against your web app",
   "type": "module",
