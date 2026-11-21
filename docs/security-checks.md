@@ -52,7 +52,7 @@ Status mismatches are errors. Header, disclosure, JWT, and rate-limit advisories
 
 JWT metadata is unverified input. Signature validation, token acceptance, audience validation, and claim semantics belong in the application. Passive CORS checks observe supplied responses without injecting origins. SQL diagnostics indicate a possible error disclosure. The checks do not establish injection or reflected XSS exploitability, and the 429 advisory does not measure a rate limiter's threshold. [OWASP API Security Top 10](https://owasp.org/API-Security/editions/2023/en/0x11-t10/)
 
-Regression Guard can track security findings using the scenario and check ID. Changing the selected security scenarios changes the baseline scope. If transport fails or rate limiting prevents a scenario from running, affected prior findings are unverified.
+Regression Guard can track security findings using the scenario and check ID. Changing the selected security scenarios changes the baseline scope. If transport fails, configured JSON cannot be read, or rate limiting prevents a scenario from running, affected prior findings are unverified.
 
 ## Run the local fixture
 

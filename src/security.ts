@@ -12,6 +12,7 @@ type Finding = {
   owasp: NonNullable<Result['owasp']>
   severity?: 'error'
   heuristic?: true
+  coverageIncomplete?: true
 }
 
 function field(value: unknown, path: string[]): unknown {
@@ -103,7 +104,7 @@ function* inspect(url: URL, endpoint: SecurityEndpoint, response: Response): Gen
   const data = expectsJson ? json(response.body) : undefined
   if (expectsJson && data === undefined) {
     yield {
-      id: 'inspection-format', category: 'disclosure', owasp: misconfiguration,
+      id: 'inspection-format', category: 'disclosure', owasp: misconfiguration, coverageIncomplete: true,
       message: 'The response could not be inspected as JSON.',
       remediation: 'Verify the endpoint returns uncompressed JSON for this scenario.',
     }
@@ -154,6 +155,7 @@ export async function runSecurity(base: URL, config: SecurityConfig, results: Re
       for (const finding of findings) results.push(result('security', 'fail', start, finding.message, {
         url: display, issue: `${endpoint.id}:${finding.id}`, category: finding.category, confidence: finding.heuristic ? 'heuristic' : 'observed',
         severity: finding.severity ?? 'warning', suggestion: finding.remediation, owasp: finding.owasp,
+        coverageIncomplete: finding.coverageIncomplete,
       }))
       if (!findings.length) results.push(result('security', 'pass', start, 'Configured response expectations passed.', { url: display }))
     } catch (error) {

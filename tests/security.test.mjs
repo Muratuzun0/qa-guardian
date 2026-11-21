@@ -181,3 +181,17 @@ test('valid JWT metadata and a noncredentialed public CORS response pass their c
   assert.equal(report.summary.pass, 1)
   assert.ok(!text.includes(fixtureToken))
 })
+
+test('an unreadable JSON response leaves earlier body findings unverified', async t => {
+  let body = '{"secret":"fixture"}'
+  const app = await fixture(t, (_, res) => res.end(body))
+  const checks = [endpoint('json', '/data', { sensitiveFields: [['secret']] })]
+  const [saved, baseline] = await app.run(checks, {}, ['--save-baseline'])
+  assert.equal(saved, 1)
+  assert.equal(baseline.baselineSaved, true)
+  body = 'temporarily unavailable'
+  const [compared, report] = await app.run(checks, {}, ['--baseline'])
+  assert.equal(compared, 1)
+  assert.equal(report.regression.unverified.length, 1)
+  assert.equal(report.regression.resolved.length, 0)
+})
