@@ -11,3 +11,5 @@ QA Guardian v0.1.0 offers a repeatable baseline for a running web app. The prior
 Use custom Playwright tests for sign-in flows and specific user journeys. QA Guardian will continue to focus on bounded checks that run against an existing preview without custom browser scripts.
 
 See the [contributor guide](../CONTRIBUTING.md) to start a small change.
+
+API security response checks are available from source on the development branch. Evaluate the local fixture and collect feedback on warning severity and CI ergonomics before releasing the feature.

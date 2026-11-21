@@ -1,0 +1,38 @@
+name: QA Guardian
+description: Run QA Guardian against a preview using the published npm CLI.
+inputs:
+  config:
+    description: Path to a JSON configuration file relative to the checkout.
+    required: false
+  url:
+    description: Optional base URL override.
+    required: false
+  fail-on:
+    description: Optional threshold override (warning or error).
+    required: false
+  report-dir:
+    description: Optional report directory relative to the checkout.
+    required: false
+  install-chromium:
+    description: Install Playwright Chromium and Linux system dependencies (true or false).
+    default: 'true'
+  version:
+    description: Exact published QA Guardian version.
+    default: '0.1.0'
+outputs:
+  exit-code:
+    description: QA Guardian exit code (0, 1 or 2).
+    value: ${{ steps.check.outputs.exit-code }}
+runs:
+  using: composite
+  steps:
+    - id: check
+      shell: bash
+      env:
+        QA_ACTION_CONFIG: ${{ inputs.config }}
+        QA_ACTION_URL: ${{ inputs.url }}
+        QA_ACTION_FAIL_ON: ${{ inputs.fail-on }}
+        QA_ACTION_REPORT_DIR: ${{ inputs.report-dir }}
+        QA_ACTION_INSTALL_CHROMIUM: ${{ inputs.install-chromium }}
+        QA_ACTION_VERSION: ${{ inputs.version }}
+      run: bash "$GITHUB_ACTION_PATH/scripts/action.sh"

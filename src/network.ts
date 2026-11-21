@@ -76,6 +76,7 @@ interface RequestOptions {
   headers?: Record<string, string>
   readBody?: boolean
   followRedirects?: boolean
+  requirePublicAddress?: boolean
   binary?: boolean
   maxBodyBytes?: number
   signal?: AbortSignal
@@ -159,7 +160,13 @@ export async function request(target: URL, options: RequestOptions): Promise<Res
         }
         headers = {}
       }
-      const response = await openResponse(url, { method, headers, external, signal })
+      if (options.requirePublicAddress) {
+        const address = url.hostname.replace(/^\[|\]$/g, '')
+        if (isIP(address) && !publicAddress(address)) {
+          throw new RequestError('blocked-target', 'The configured host has a non-public address.')
+        }
+      }
+      const response = await openResponse(url, { method, headers, external: external || options.requirePublicAddress === true, signal })
       try {
         const status = response.statusCode ?? 0
         if (options.followRedirects !== false && redirectStatuses.has(status)) {

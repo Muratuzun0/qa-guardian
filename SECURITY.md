@@ -7,3 +7,5 @@ Run QA Guardian against applications you own or have permission to test. Treat b
 Use GitHub's private vulnerability reporting if it is enabled for this repository. If private reporting is unavailable, open an issue requesting a private contact method and omit vulnerability details from the issue.
 
 Include the CLI version, Node.js version, operating system, affected behavior, and a minimal reproduction using dummy data. Remove credentials, sensitive URLs, and application data from any files you share.
+
+Run QA Guardian's opt-in API checks only against endpoints you are authorized to test. Use disposable test identities and keep reports private when endpoint paths are sensitive. The [API security checks guide](docs/security-checks.md) describes the request boundaries and finding limitations.

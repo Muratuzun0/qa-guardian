@@ -1,0 +1,28 @@
+{
+  "baseUrl": "http://127.0.0.1:4185",
+  "checks": { "pages": false, "links": false, "accessibility": false, "api": false },
+  "failOn": "warning",
+  "security": {
+    "authorized": true,
+    "origin": "http://127.0.0.1:4185",
+    "requestBudget": 3,
+    "endpoints": [
+      { "id": "anonymous", "path": "/api/account", "expectedStatus": 401 },
+      {
+        "id": "member",
+        "path": "/api/account",
+        "expectedStatus": 200,
+        "bearerTokenEnv": "QAG_DEMO_MEMBER",
+        "sensitive": true,
+        "expectHeaders": ["x-content-type-options"]
+      },
+      {
+        "id": "debug",
+        "path": "/api/debug",
+        "expectedStatus": 200,
+        "inspectDiagnostics": true,
+        "sensitiveFields": [["internal", "debugValue"]]
+      }
+    ]
+  }
+}

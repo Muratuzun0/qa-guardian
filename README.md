@@ -1,14 +1,19 @@
-![QA Guardian banner with an illustrative terminal report](assets/qa-guardian-banner.png)
+<p align="center">
+  <img src="assets/qa-guardian-banner.png" alt="QA Guardian banner with illustrative terminal output">
+</p>
+
+<h1 align="center">QA Guardian</h1>
+
+<p align="center">Check a running web app before deployment. Compare findings against a local baseline and gate CI on new regressions.</p>
+
+<p align="center">
+  <a href="https://github.com/Muratuzun0/qa-guardian/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/Muratuzun0/qa-guardian/actions/workflows/ci.yml/badge.svg"></a>
+  <a href="https://www.npmjs.com/package/@muratuzun0/qa-guardian"><img alt="npm version" src="https://img.shields.io/npm/v/@muratuzun0/qa-guardian"></a>
+  <a href="#requirements"><img alt="Node.js 22 and 24" src="https://img.shields.io/badge/Node.js-22%20%7C%2024-375a3b"></a>
+  <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-blue"></a>
+</p>
 
 *The banner shows illustrative terminal output.*
-
-# QA Guardian
-
-[![CI](https://github.com/Muratuzun0/qa-guardian/actions/workflows/ci.yml/badge.svg)](https://github.com/Muratuzun0/qa-guardian/actions/workflows/ci.yml) [npm package](https://www.npmjs.com/package/@muratuzun0/qa-guardian)
-
-QA Guardian is a TypeScript CLI for checking a running web application before deployment. It checks page availability, links, accessibility, and simple REST API expectations in one run. Regression Guard can fail a run on newly introduced findings while keeping existing issues visible. It works with Next.js, React, and static sites. Checks and comparisons run locally.
-
-QA Guardian uses Playwright and axe for rendered-page checks and adds scoped HTTP checks, a shared report, and a local regression baseline. Use Playwright tests directly for custom user journeys, app-specific assertions, and control over the exact page state you scan.
 
 ## Requirements
 
@@ -16,7 +21,7 @@ QA Guardian uses Playwright and axe for rendered-page checks and adds scoped HTT
 - Chromium installed through Playwright for browser checks
 - A running application or preview deployment
 
-## Install and run
+## Quick start
 
 From your application directory, install the published package and Chromium.
 
@@ -38,6 +43,18 @@ Run `init` in the application directory to create `qa-guardian.config.json`. Edi
 npx qa-guardian init
 npx qa-guardian check
 ```
+
+## What it checks
+
+| Check | What you get |
+| --- | --- |
+| Pages and links | Response status and rendered link findings from configured pages. |
+| Accessibility | axe rules, affected selectors, and remediation guidance. |
+| API smoke tests | Expected statuses and JSON value assertions for configured endpoints. |
+| Regression Guard | New, resolved, unchanged, and unverified findings against a local baseline. |
+| API security expectations | Opt-in status, header, disclosure, and JWT metadata checks. Available from source on this branch. |
+
+Use Playwright directly when you need to sign in, script a specific user journey, or inspect a page after an interaction. QA Guardian combines bounded checks of a running preview into one terminal or JSON report.
 
 ## Try the React demo
 
@@ -65,6 +82,21 @@ Comparison (exit 1)
 ```
 
 The CLI’s comparison exits 1 because the new link fails the threshold. The demo script exits 0 when the expected findings match. For a manual run and full terminal output, follow the [React demo walkthrough](examples/react-launch/README.md).
+
+## API security checks
+
+Add explicit authorization and exact-origin scenarios to check what authorized and anonymous test identities receive. Checks can review CORS response headers, cache policy, selected security headers, diagnostic disclosures, forbidden JSON fields, token metadata, and 429 backoff guidance. The currently published v0.1.0 package predates these checks.
+
+The [local fixture](docs/security-checks.md#run-the-local-fixture) produced these lines from the terminal report:
+
+```text
+  debug:origin-policy (cors, observed)
+  debug:diagnostic-disclosure (disclosure, heuristic)
+  debug:sensitive-field (disclosure, observed)
+2 passed, 3 failed, 0 skipped, 0 execution errors (exit 1)
+```
+
+The checks apply declared response policies. They do not establish exploitability or OWASP compliance. [Configuration and safety limits](docs/security-checks.md)
 
 ## Configure the checks
 
@@ -136,21 +168,49 @@ See the [Regression Guard guide](docs/regression-guard.md) for comparison rules 
 
 ## Run in GitHub Actions
 
-The following GitHub Actions step runs the bundled preview after setting up Node.js and running `npm ci`. For your own app, install QA Guardian as a dev dependency, replace the preview command with your app's start command, and use `npx qa-guardian check` to read your project's default configuration.
+This workflow installs the published CLI into the consumer project and waits for the preview to answer before checking it. The example assumes your `start` script launches the preview on port 3000 after the build.
 
 ```yaml
-- name: Check the preview
-  shell: bash
-  run: |
-    npx playwright install --with-deps chromium
-    npm run build
-    node examples/preview.mjs &
-    server_pid=$!
-    trap 'kill "$server_pid" 2>/dev/null || true' EXIT
-    curl --fail --silent --show-error --retry 20 --retry-connrefused \
-      --retry-delay 1 --max-time 5 http://127.0.0.1:3000/ >/dev/null
-    node dist/cli.js check --config examples/qa-guardian.config.json
+name: Preview QA
+on: [pull_request]
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@6044e13b5dc448c55e2357c09f80417699197238 # v6.2.0
+        with:
+          node-version: 24
+      - run: npm ci
+      - run: npm install --no-save --package-lock=false @muratuzun0/qa-guardian@0.1.0
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+      - shell: bash
+        run: |
+          npm start &
+          server=$!
+          trap 'kill "$server" 2>/dev/null || true' EXIT
+          curl --fail --silent --show-error --retry 20 --retry-connrefused \
+            --retry-delay 1 --max-time 5 http://127.0.0.1:3000/ >/dev/null
+          npx qa-guardian check --url http://127.0.0.1:3000
 ```
+
+The repository also includes a [composite action](action.yml). Refer to a reviewed commit containing the action and set up Node.js first. The action installs the selected published package without requiring QA Guardian source files in the consumer checkout.
+
+| Input | Behavior |
+| --- | --- |
+| `config` | Optional JSON configuration path. |
+| `url` | Optional base URL override. |
+| `fail-on` | Optional `warning` or `error` threshold override. |
+| `report-dir` | Optional report directory relative to the checkout. |
+| `install-chromium` | Install browser dependencies unless set to `false`. |
+| `version` | Exact published version, default `0.1.0`. |
+
+The `exit-code` output records the CLI status, and a nonzero status also fails the step. When you set `report-dir`, collect `<directory>/qa-guardian-report.json` in a subsequent step with `if: always()`.
 
 ## Troubleshooting
 

@@ -12,7 +12,7 @@ const filename = '.qa-guardian-baseline.json'
 const maxBytes = 32 * 1024 * 1024
 const entrySchema = z.strictObject({
   fingerprint: z.string().regex(/^[a-f0-9]{64}$/),
-  check: z.enum(['pages', 'links', 'accessibility', 'api']),
+  check: z.enum(['pages', 'links', 'accessibility', 'api', 'security']),
   url: z.string().max(512).optional(),
   sourceUrl: z.string().max(512).optional(),
   rule: z.string().max(100).optional(),
@@ -41,6 +41,7 @@ export function baselineScope(config: Config): string {
   const route = (value: string) => safeUrl(parseTarget(value, base))
   return digest({
     origin: base.origin,
+    security: config.security,
     checks: [pages, links, accessibility, api],
     routes: pages || links || accessibility ? [...new Set(config.routes.map(route))].sort() : [],
     links: links ? [config.links.checkFragments, config.links.maxLinksPerPage, [...config.links.externalOrigins].sort()] : [],
