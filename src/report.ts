@@ -3,7 +3,7 @@ import { lstat, mkdir, mkdtemp, rename, rm, writeFile } from 'node:fs/promises'
 import { join } from 'node:path'
 import type { Regression } from './baseline.js'
 
-export type Check = 'pages' | 'links' | 'accessibility' | 'api' | 'execution'
+export type Check = 'pages' | 'links' | 'accessibility' | 'api' | 'security' | 'execution'
 export type Severity = 'info' | 'warning' | 'error'
 export type Status = 'pass' | 'fail' | 'skipped' | 'error'
 
@@ -23,6 +23,9 @@ export interface Result {
   issue?: string
   fingerprint?: string
   coverageIncomplete?: boolean
+  category?: 'access-control' | 'headers' | 'cors' | 'disclosure' | 'jwt' | 'rate-limit'
+  confidence?: 'observed' | 'heuristic'
+  owasp?: 'API2:2023' | 'API4:2023' | 'API8:2023'
 }
 
 export function result(check: Check, status: Status, started: number, message: string, details: Partial<Omit<Result,
@@ -86,6 +89,7 @@ export function formatTerminal(output: Report): string {
     const source = item.sourceUrl ? ` (from ${item.sourceUrl})` : ''
     lines.push(`[${item.status.toUpperCase()}] ${item.check}${url}${source} (${item.durationMs} ms) ${item.message}`)
     if (item.status === 'fail' && item.severity === 'warning') lines.push('  Severity: warning')
+    if (item.category) lines.push(`  ${item.issue} (${item.category}, ${item.confidence})`)
     if (item.rule) lines.push(`  ${item.rule} (${item.impact ?? 'unrated'})`)
     for (const target of item.targets ?? []) lines.push(`  ${target}`)
     if (item.suggestion) lines.push(`  ${item.suggestion}`)

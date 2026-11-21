@@ -64,3 +64,7 @@ API requests use the configured URL directly and do not follow redirects. Assert
 | `failOn` | `"error"` | Fail on error results. Use `"warning"` to also fail on warnings. |
 
 The JSON report includes `schemaVersion`, `results`, `summary`, and `exitCode`. Serious and critical axe findings are errors. Other axe findings and link truncation are warnings. An execution error takes precedence over any result threshold. See the [README](../README.md#run-checks-and-read-results) for exit codes.
+
+## API security expectations
+
+Opt in with `security.authorized: true` and an exact `security.origin`. Each scenario describes one authorized GET with its expected status and optional response policies. See the [security reference](security-checks.md) for examples, defaults, and interpretation.

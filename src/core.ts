@@ -243,5 +243,9 @@ export async function runChecks(config: Config, results: Result[], secrets: stri
     await new WebsiteChecks(config, base, results).run()
   }
   for (const { endpoint, headers } of api) results.push(await runApi(base, config, endpoint, headers))
+  if (config.security) {
+    const { runSecurity } = await import('./security.js')
+    await runSecurity(base, config.security, results, secrets)
+  }
   if (results.length === 0) results.push(result('execution', 'skipped', performance.now(), 'No checks are configured to run.'))
 }

@@ -56,3 +56,7 @@ Finding identity excludes elapsed times, message text, DOM selectors, and URL qu
 ## Future directions
 
 Consider clearer diagnostics for client-side rendering readiness and finer baseline granularity when it can be introduced without exposing sensitive data. Evaluate each addition against the cost of more configuration and less predictable runs.
+
+## Defensive API response checks
+
+`src/security-config.ts` validates explicit scenario scope and the request budget. `src/security.ts` sends only fixed GET requests and evaluates HTTP status, headers, configured fields, and optional JWT metadata. It reuses the shared transport but requires public DNS answers outside literal loopback and disables redirects. Security results contain fixed evidence messages and remediation for baseline comparison.

@@ -4,6 +4,7 @@ import { z } from 'zod'
 import { ConfigError } from './errors.js'
 import { readLocalFile } from './local-files.js'
 import { parseTarget } from './network.js'
+import { securitySchema, validateSecurity } from './security-config.js'
 
 export const defaultConfigFile = 'qa-guardian.config.json'
 const timeout = z.number().int().min(1).max(120_000)
@@ -63,6 +64,7 @@ const schema = z.strictObject({
       equals: z.union([z.string().max(8192), z.number(), z.boolean(), z.null()]),
     })).max(50).default([]),
   })).max(100).default([]),
+  security: securitySchema.optional(),
   allowUnsafeMethods: z.boolean().default(false),
   reportDir: z.string().min(1).max(255).refine(value =>
     !/[\\:\x00-\x1f\x7f]/u.test(value) && !value.startsWith('/') &&
@@ -113,6 +115,7 @@ export function validateConfig(input: unknown): Config {
       throw new ConfigError(`api.${index}.assertions: HEAD responses have no body`)
     }
   })
+  if (config.security) validateSecurity(config.security, base)
   return config
 }
 
