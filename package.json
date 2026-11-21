@@ -4,7 +4,14 @@
   "description": "Run bounded availability, link, accessibility and API checks against your web app",
   "type": "module",
   "license": "MIT",
-  "repository": "github:Muratuzun0/qa-guardian",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Muratuzun0/qa-guardian.git"
+  },
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "engines": {
     "node": "^22.0.0 || ^24.0.0"
   },

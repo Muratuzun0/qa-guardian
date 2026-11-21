@@ -2,7 +2,8 @@ import assert from 'node:assert/strict';
 import { execFile } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { once } from 'node:events';
-import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import { constants } from 'node:fs';
+import { copyFile, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { createServer } from 'node:http';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
@@ -92,6 +93,8 @@ try {
   assert.deepEqual(report.results.filter(({ status }) => status === 'pass').map(({ check }) => check).sort(),
     ['api', 'pages']);
   assert.deepEqual(new Set(requestedPaths), new Set(['/', '/api/health']));
+  const output = process.env.QA_GUARDIAN_PACK_OUTPUT;
+  if (output) await copyFile(join(temporary, archive.filename), output, constants.COPYFILE_EXCL);
   console.log(`Packed and installed ${archive.name}@${archive.version}; verified CLI and local checks.`);
 } finally {
   if (server.listening) await new Promise((resolve) => server.close(resolve));
