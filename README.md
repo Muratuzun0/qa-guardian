@@ -1,8 +1,10 @@
 # QA Guardian
 
+[![CI](https://github.com/Muratuzun0/qa-guardian/actions/workflows/ci.yml/badge.svg)](https://github.com/Muratuzun0/qa-guardian/actions/workflows/ci.yml) [npm package](https://www.npmjs.com/package/@muratuzun0/qa-guardian)
+
 QA Guardian is a TypeScript CLI for checking a running web application before deployment. It checks page availability, links, accessibility, and simple REST API expectations in one run. Regression Guard can fail a run on newly introduced findings while keeping existing issues visible. It works with Next.js, React, and static sites. Checks and comparisons run locally.
 
-A small application can benefit from a deploy check before it has a full automated test suite. QA Guardian gives teams a place to list important routes and API responses, run the same checks locally and in CI, and see what needs fixing.
+QA Guardian uses Playwright and axe for rendered-page checks and adds scoped HTTP checks, a shared report, and a local regression baseline. Use Playwright tests directly for custom user journeys, app-specific assertions, and control over the exact page state you scan.
 
 ## Requirements
 
@@ -12,18 +14,10 @@ A small application can benefit from a deploy check before it has a full automat
 
 ## Install and run
 
-The npm package is named `@muratuzun0/qa-guardian` and installs the `qa-guardian` command. Run the build and pack commands in a checkout of this project.
+From your application directory, install the published package and Chromium.
 
 ```sh
-npm ci
-npm run build
-npm pack
-```
-
-Install the generated archive from your application directory. Replace the archive path with the one printed by `npm pack`.
-
-```sh
-npm install --save-dev /path/to/muratuzun0-qa-guardian-0.1.0.tgz
+npm install --save-dev @muratuzun0/qa-guardian
 npx playwright install chromium
 ```
 
@@ -41,19 +35,32 @@ npx qa-guardian init
 npx qa-guardian check
 ```
 
-## Try the example site
+## Try the React demo
 
-Start the sample site in one terminal from the checkout.
+This community workshop site starts with a missing image alternative and a broken recording link. The second scenario fixes the decorative image with `alt=""` and adds a new broken link to a partner guide. The recording link stays broken.
 
-```sh
-node examples/preview.mjs
-```
-
-After building the CLI and installing Chromium, run the example check from the checkout in another terminal.
+From a checkout of this repository, run the demo with the published CLI pinned to `0.1.0`.
 
 ```sh
-node dist/cli.js check --config examples/qa-guardian.config.json
+cd examples/react-launch
+npm ci
+npx playwright install chromium
+npm run demo
 ```
+
+The demo saves a real baseline with `check --save-baseline`, then compares the revised site with `check --baseline`. It prints this summary from the CLI’s JSON reports.
+
+```text
+Baseline (exit 1)
+  accessibility /: image-alt
+  links /workshop-recording: Link returned HTTP 404.
+Comparison (exit 1)
+  new: links /partner-guide: Link returned HTTP 404.
+  resolved: accessibility /: image-alt
+  unchanged: links /workshop-recording: Link returned HTTP 404.
+```
+
+The CLI’s comparison exits 1 because the new link fails the threshold. The demo script exits 0 when the expected findings match. For a manual run and full terminal output, follow the [React demo walkthrough](examples/react-launch/README.md).
 
 ## Configure the checks
 

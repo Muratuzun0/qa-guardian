@@ -1,0 +1,9 @@
+{
+  "name": "qa-guardian-react-demo",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": { "demo": "node demo.mjs", "start": "node server.mjs" },
+  "dependencies": { "react": "19.3.1", "react-dom": "19.3.1" },
+  "devDependencies": { "@muratuzun0/qa-guardian": "0.1.0" }
+}

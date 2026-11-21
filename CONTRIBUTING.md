@@ -12,3 +12,13 @@ Prepare changes for review using these steps.
 4. Update configuration or usage documentation when commands, defaults, or results change.
 
 Keep fixtures local and deterministic. Check behavior with a clean installation if you change the package manifest, CLI entry point, or published files. See [Architecture](docs/architecture.md) for the design boundaries and roadmap.
+
+## First contributions
+
+Pick one small change and include a before-and-after example in your pull request. Search open issues first so you can build on work already in progress.
+
+| Task | Where to start | What to verify |
+| --- | --- | --- |
+| Show resolved findings in the terminal comparison | [Terminal formatter](src/report.ts) and [report tests](tests/core.test.mjs). The formatter prints each new finding but only counts resolved ones. | A fixture with a resolved axe rule prints its route and rule. JSON and exit codes stay the same. |
+| Cover links to percent-encoded element IDs | [Fragment handling](src/core.ts), the [fixture server](tests/fixtures/web.mjs), and [CLI tests](tests/cli.test.mjs). Add a valid encoded fragment that resolves to an accented ID and a malformed escape. | The valid fragment passes and the malformed one gets the existing explanatory finding. Keep both cases on the local fixture. |
+| Document a readiness check for preview servers | [README GitHub Actions example](README.md#run-in-github-actions) and [preview server](examples/preview.mjs). Explain why readiness is checked before QA Guardian runs and how to select an unauthenticated readiness endpoint. | Run the example with a delayed server start and confirm that the check begins only after the readiness request succeeds. |
