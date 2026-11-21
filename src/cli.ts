@@ -12,12 +12,14 @@ const help = `QA Guardian
 Usage:
   qa-guardian init
   qa-guardian check [--url URL] [--config FILE] [--json] [--baseline | --save-baseline]
+  qa-guardian security --config FILE [--json] [--baseline | --save-baseline]
   qa-guardian --help
   qa-guardian --version
 
 Commands:
   init          Create qa-guardian.config.json in the working directory.
   check         Run the checks against the configured application.
+  security      Run only explicitly configured API security scenarios.
 
 Options for check:
   --url URL     Override the configured base URL.
@@ -106,7 +108,7 @@ async function main(args: string[]): Promise<number> {
     await init(cwd)
     return 0
   }
-  if (command !== 'check') throw new ConfigError('Unknown command. Run qa-guardian --help for usage.')
+  if (command !== 'check' && command !== 'security') throw new ConfigError('Unknown command. Run qa-guardian --help for usage.')
   const results: Result[] = []
   const secrets: string[] = []
   const started = performance.now()
@@ -117,11 +119,17 @@ async function main(args: string[]): Promise<number> {
     const flags = checkOptions(options)
     json = flags.json === true
     if (flags.help) {
-      process.stdout.write(checkHelp)
+      process.stdout.write(command === 'security'
+        ? 'Usage: qa-guardian security --config FILE [--json] [--baseline | --save-baseline]\n'
+        : checkHelp)
       return 0
     }
     const { loadConfig } = await import('./config.js')
     const config = await loadConfig(cwd, flags.config, flags.url)
+    if (command === 'security') {
+      if (!config.security) throw new ConfigError('Configure authorized security scenarios before using the security command.')
+      config.checks = { pages: false, links: false, accessibility: false, api: false }
+    }
     failOn = config.failOn
     const { baselineScope, compareBaseline, loadBaseline, saveBaseline } = await import('./baseline.js')
     const scope = flags.baseline || flags['save-baseline'] ? baselineScope(config) : ''

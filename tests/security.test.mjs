@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict'
 import { execFile } from 'node:child_process'
+import { generateKeyPairSync, sign } from 'node:crypto'
 import { once } from 'node:events'
 import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises'
 import { createServer } from 'node:http'
@@ -17,8 +18,10 @@ const endpoint = (id, path, attributes = {}) => ({ id, path, expectedStatus: 200
 async function fixture(t, respond) {
   const cwd = await mkdtemp(join(tmpdir(), 'qa-guardian-security-'))
   const requests = []
+  const received = []
   const server = createServer((req, res) => {
     requests.push([req.method, req.url, req.headers.authorization])
+    received.push(performance.now())
     respond(req, res)
   })
   await once(server.listen(0, '127.0.0.1'), 'listening')
@@ -28,8 +31,8 @@ async function fixture(t, respond) {
   })
   const origin = `http://127.0.0.1:${server.address().port}`
   return {
-    cwd, requests, origin,
-    async run(endpoints, extra = {}, flags = [], overrides = {}, env = { FIXTURE_TOKEN: testToken }) {
+    cwd, requests, received, origin,
+    async run(endpoints, extra = {}, flags = [], overrides = {}, env = { FIXTURE_TOKEN: testToken }, command = 'check') {
       await writeFile(join(cwd, 'qa-guardian.config.json'), JSON.stringify({
         baseUrl: origin, checks: { pages: false, links: false, accessibility: false, api: false },
         failOn: 'warning', reportDir: 'reports',
@@ -37,7 +40,7 @@ async function fixture(t, respond) {
       }))
       const options = { cwd, env: { ...process.env, ...env } }
       try {
-        const { stdout } = await execute(process.execPath, [cli, 'check', '--json', ...flags], options)
+        const { stdout } = await execute(process.execPath, [cli, command, '--json', ...flags], options)
         return [0, JSON.parse(stdout), stdout]
       } catch (error) {
         return [error.code, JSON.parse(error.stdout), error.stdout]
@@ -91,7 +94,7 @@ test('observes CORS, cache policy, SQL diagnostic disclosure, and JWT metadata w
   const token = [
     Buffer.from('{"alg":"RS256"}').toString('base64url'),
     Buffer.from('{"exp":1}').toString('base64url'),
-    'fake-signature',
+    Buffer.from('fixture').toString('base64url'),
   ].join('.')
   const secret = 'private-response-value'
   const app = await fixture(t, (_, res) => {
@@ -161,7 +164,7 @@ test('valid JWT metadata and a noncredentialed public CORS response pass their c
   const fixtureToken = [
     Buffer.from('{"alg":"RS256"}').toString('base64url'),
     Buffer.from(JSON.stringify({ iat: now - 2, nbf: now - 1, exp: now + 60, sub: 'test-user' })).toString('base64url'),
-    'fixture-signature',
+    Buffer.from('fixture').toString('base64url'),
   ].join('.')
   const app = await fixture(t, (_, res) => {
     res.writeHead(200, {
@@ -194,4 +197,90 @@ test('an unreadable JSON response leaves earlier body findings unverified', asyn
   assert.equal(compared, 1)
   assert.equal(report.regression.unverified.length, 1)
   assert.equal(report.regression.resolved.length, 0)
+})
+
+test('verifies JWT issuer, audience, expiration and pinned RSA signature without exposing token bytes', async t => {
+  const { privateKey, publicKey } = generateKeyPairSync('rsa', { modulusLength: 2048 })
+  const encoded = value => Buffer.from(JSON.stringify(value)).toString('base64url')
+  const now = Math.floor(Date.now() / 1000)
+  const claims = { exp: now + 300, iat: now - 1, nbf: now - 1, iss: 'test-issuer', aud: ['test-audience'] }
+  const compact = (payload, algorithm = 'RS256') => {
+    const data = `${encoded({ alg: algorithm })}.${encoded(payload)}`
+    return data + '.' + sign('sha256', Buffer.from(data), privateKey).toString('base64url')
+  }
+  let token = compact(claims)
+  const app = await fixture(t, (_, res) => res.end(JSON.stringify({ token })))
+  const config = [endpoint('verified', '/session', {
+    jwt: {
+      path: ['token'], issuer: 'test-issuer', audience: 'test-audience', maxLifetimeSeconds: 600,
+      verification: { algorithm: 'RS256', publicKeyEnv: 'FIXTURE_PUBLIC_KEY' },
+    },
+  })]
+  const env = { FIXTURE_PUBLIC_KEY: publicKey.export({ type: 'spki', format: 'pem' }) }
+  assert.equal((await app.run(config, {}, [], {}, env))[0], 0)
+  for (const [candidate, message] of [
+    [compact({ ...claims, iss: 'wrong' }), /issuer/],
+    [compact({ ...claims, aud: ['wrong'] }), /audience/],
+    [compact({ ...claims, exp: now - 1 }), /expiration/],
+    [compact({ ...claims, nbf: now + 60 }), /not-before/],
+    [compact(claims, 'HS256'), /signature/],
+    [compact(claims).replace(/\.[^.]+$/, '.ZmFrZQ'), /signature/],
+  ]) {
+    token = candidate
+    const [code, report, text] = await app.run(config, {}, [], {}, env)
+    assert.equal(code, 1)
+    assert.match(report.results[0].message, message)
+    assert.ok(!text.includes(candidate))
+  }
+  const before = app.requests.length
+  assert.equal((await app.run(config, {}, [], {}, { FIXTURE_PUBLIC_KEY: 'invalid' }))[0], 2)
+  assert.equal(app.requests.length, before)
+})
+
+test('checks observed CORS allowlists, session cookie attributes and rate-limit header syntax', async t => {
+  let secure = false
+  const secret = 'test-session-secret'
+  const app = await fixture(t, (_, res) => {
+    res.writeHead(200, {
+      'access-control-allow-methods': secure ? 'GET' : 'GET, DELETE',
+      'access-control-allow-headers': secure ? 'Content-Type' : 'Content-Type, Authorization',
+      'set-cookie': [`session=${secret}${secure ? '; Secure; HttpOnly; SameSite=Lax' : ''}`],
+      'retry-after': secure ? '30' : 'unexpected value',
+      'x-ratelimit-limit': '10', 'x-ratelimit-remaining': secure ? '0' : '11',
+      'referrer-policy': secure ? 'strict-origin-when-cross-origin' : 'unknown',
+    })
+    res.end(secure ? 'ok' : ['-----BEGIN', 'PRIVATE KEY-----'].join(' '))
+  })
+  const checks = [endpoint('policy', '/account', {
+    corsMethods: ['GET'], corsHeaders: ['content-type'], cookies: [{ name: 'session', sameSite: 'Lax' }],
+    expectRateLimitHeaders: true, inspectCredentialMarkers: true, expectHeaders: ['referrer-policy'],
+  })]
+  const [code, report, text] = await app.run(checks)
+  assert.equal(code, 1)
+  assert.deepEqual(report.results.map(item => item.issue).sort(), [
+    'policy:access-control-allow-headers', 'policy:access-control-allow-methods', 'policy:cookie-attributes',
+    'policy:credential-marker', 'policy:rate-limit-budget', 'policy:referrer-policy', 'policy:retry-after-format',
+  ])
+  assert.ok(!text.includes(secret))
+  secure = true
+  assert.equal((await app.run(checks))[0], 0)
+})
+
+test('security-only command checks fixed object paths with separately supplied identities', async t => {
+  const app = await fixture(t, (req, res) => {
+    res.writeHead(req.headers.authorization === `Bearer ${testToken}` ? 200 : req.headers.authorization ? 403 : 401)
+    res.end()
+  })
+  const resource = '/accounts/test-resource'
+  const checks = [
+    endpoint('anonymous', resource, { expectedStatus: 401 }),
+    endpoint('owner', resource, { bearerTokenEnv: 'FIXTURE_TOKEN' }),
+    endpoint('unrelated', resource, { expectedStatus: 403, bearerTokenEnv: 'FIXTURE_OTHER' }),
+  ]
+  const [code] = await app.run(checks, { intervalMs: 15 }, [], { checks: { pages: true } }, {
+    FIXTURE_TOKEN: testToken, FIXTURE_OTHER: 'other-test-token',
+  }, 'security')
+  assert.equal(code, 0)
+  assert.deepEqual(app.requests.map(item => item[1]), [resource, resource, resource])
+  assert.ok(app.received[2] - app.received[0] >= 25)
 })
