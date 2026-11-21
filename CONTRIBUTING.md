@@ -11,7 +11,7 @@ Prepare changes for review using these steps.
 3. Run `npm run typecheck`, `npm run lint`, `npm test`, and `npm run build`.
 4. Update configuration or usage documentation when commands, defaults, or results change.
 
-Keep fixtures local and deterministic. Check behavior with a clean installation if you change the package manifest, CLI entry point, or published files. See [Architecture](docs/architecture.md) for the design boundaries and roadmap.
+Keep fixtures local and deterministic. Check behavior with a clean installation if you change the package manifest, CLI entry point, or published files. See [Architecture](docs/architecture.md) for design boundaries and the [roadmap](docs/roadmap.md) for current priorities.
 
 ## First contributions
 

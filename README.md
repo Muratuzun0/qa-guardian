@@ -1,3 +1,7 @@
+![QA Guardian banner with an illustrative terminal report](assets/qa-guardian-banner.png)
+
+*The banner shows illustrative terminal output.*
+
 # QA Guardian
 
 [![CI](https://github.com/Muratuzun0/qa-guardian/actions/workflows/ci.yml/badge.svg)](https://github.com/Muratuzun0/qa-guardian/actions/workflows/ci.yml) [npm package](https://www.npmjs.com/package/@muratuzun0/qa-guardian)
@@ -28,7 +32,7 @@ npx qa-guardian check
 npx qa-guardian check --url http://localhost:3000
 ```
 
-Run `init` in the application directory to save your configuration.
+Run `init` in the application directory to create `qa-guardian.config.json`. Edit the routes to match your application. API checks run only for endpoints you configure.
 
 ```sh
 npx qa-guardian init
@@ -176,7 +180,7 @@ npm run build
 node dist/cli.js --help
 ```
 
-Read [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidance, [SECURITY.md](SECURITY.md) for vulnerability reporting, and the [architecture notes](docs/architecture.md) for scope and design decisions.
+Read [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidance, [SECURITY.md](SECURITY.md) for vulnerability reporting, and the [architecture notes](docs/architecture.md) for scope and design decisions. The [roadmap](docs/roadmap.md) lists small improvements that contributors can verify locally.
 
 ## License
 
