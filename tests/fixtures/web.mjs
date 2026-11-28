@@ -42,6 +42,13 @@ export async function startFixture() {
             document.querySelector('main').append(link);
           </script>`);
         break;
+      case '/encoded-fragments':
+        html(response, `
+          <main><h1>Encoded fragments</h1>
+          <h2 id="caf\u00e9">Caf\u00e9</h2>
+          <a href="#caf%C3%A9">Valid percent-encoded fragment</a>
+          <a href="#bad%zz">Invalid percent escape</a></main>`);
+        break;
       case '/pixel.svg':
         response.writeHead(200, { 'content-type': 'image/svg+xml' });
         response.end('<svg xmlns="http://www.w3.org/2000/svg" width="5" height="5"><rect width="5" height="5"/></svg>');

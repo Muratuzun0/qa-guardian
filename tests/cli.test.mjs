@@ -238,6 +238,25 @@ test('checks rendered links, fragments and accessibility on a local page', async
   assert.match(accessibility.guidance, /^https:\/\//);
 });
 
+test('decodes percent-encoded link fragments and reports malformed escapes', async (t) => {
+  const cwd = await workspace(t);
+  await config(cwd, {
+    checks: { ...pageChecks, links: true },
+    routes: ['/encoded-fragments'],
+  });
+
+  const report = parse(await run(cwd, ['check', '--json']), 1);
+  const links = report.results.filter((result) =>
+    result.check === 'links' && new URL(result.url).pathname === '/encoded-fragments');
+  assert.equal(links.length, 2);
+  const valid = links.find((result) => result.status === 'pass');
+  const invalid = links.find((result) => result.status === 'fail');
+  assert.ok(valid);
+  assert.equal(invalid?.issue, 'fragment');
+  assert.match(invalid.message, /invalid percent encoding/i);
+  assert.ok(!links.some((result) => /not found/i.test(result.message)));
+});
+
 test('checks an initial URL without creating a configuration file', async (t) => {
   const cwd = await workspace(t);
   const report = parse(await run(cwd, ['check', '--url', fixture.origin, '--json']), 0);
